@@ -1,0 +1,18 @@
+{
+  "titre": "<em>Lumi</em>, assistante client",
+  "type": "Assistant IA · chatbot",
+  "sous_titre": "Base de connaissances, diagnostic guidé, escalade vers un conseiller",
+  "couleur": "#18181b",
+  "graine": 9,
+  "voix": [[3.3, "Lumi, un assistant de support client qui répond vraiment,"], [8.6, "il guide un diagnostic de panne, ouvre une intervention si besoin,"], [15.6, "cherche dans la base de connaissances, cite ses sources, et montre son raisonnement."]],
+  "etapes": [
+    {"t": "wait", "ms": 1400},
+    {"t": "click", "sel": ".sugg button:nth-child(1)", "pause": 1900},
+    {"t": "click", "sel": ".sugg button:nth-child(3)", "pause": 1800},
+    {"t": "click", "sel": ".sugg button:nth-child(1)", "pause": 2600},
+    {"t": "type", "sel": "#q", "text": "Comment payer avec Orange Money ?", "delay": 30, "pause": 100},
+    {"t": "click", "sel": "#form button", "pause": 2800},
+    {"t": "hover", "sel": "#trace .res.top", "pause": 1000},
+    {"t": "click", "sel": "#tabs [data-p=stats]", "pause": 1300}
+  ]
+}

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumo — Assistant client intelligent</title>
+<meta name="description" content="Assistant de support client pour Lumo Fibre : base de connaissances, diagnostic de panne guidé, suivi d'intervention, escalade vers un conseiller. Fonctionne sans API externe.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%2318181b'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23ffcf33'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f4f3ee;--ink:#18181b;--sun:#ffcf33;--sun2:#fff3c4;--card:#fff;--mute:#71717a;--line:#e4e2da;--ok:#16a34a;--bad:#dc2626;--blue:#2b59ff}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:400 15.5px/1.5 'Familjen Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.mono{font-family:'Martian Mono',monospace;font-size:11.5px;letter-spacing:-.01em}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.03em}
+.brand i{width:32px;height:32px;border-radius:10px;background:var(--ink);display:grid;place-items:center}
+.brand i::after{content:"";width:13px;height:13px;border-radius:50%;background:var(--sun)}
+.badge{font-size:13px;color:var(--mute);display:flex;gap:8px;align-items:center}
+.badge b{background:var(--ink);color:var(--sun);padding:3px 10px;border-radius:100px;font-weight:600;font-size:12px}
+.layout{display:grid;grid-template-columns:1fr 450px;gap:24px;padding:0 28px 28px;max-width:1360px;margin:auto;align-items:start}
+.intro h1{font-size:clamp(34px,4vw,56px);line-height:1;letter-spacing:-.045em;font-weight:700;margin:20px 0 14px}
+.intro h1 span{background:var(--sun);padding:0 .12em;border-radius:6px}
+.intro p{color:#52525b;max-width:40em;font-size:17px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;margin-top:26px;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 10px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:15px 14px;font-weight:600;font-size:14px;color:var(--mute);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-color:var(--ink)}
+.pv{padding:22px;display:none;min-height:420px}.pv.on{display:block}
+.empty{color:var(--mute);text-align:center;padding:70px 20px}
+.trace{display:grid;gap:16px}
+.trace h5{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-bottom:8px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.tok{font:500 11.5px 'Martian Mono';background:var(--sun2);padding:4px 8px;border-radius:7px}
+.int{display:inline-flex;align-items:center;gap:8px;font-weight:600;background:var(--ink);color:#fff;padding:6px 12px;border-radius:100px;font-size:13px}
+.res{display:grid;grid-template-columns:1fr 150px 54px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.res:last-child{border:0}
+.bar{height:8px;background:#f0efe9;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ink);border-radius:6px;transition:width .6s}
+.res.top .bar i{background:var(--sun)}
+.dec{padding:12px 14px;border-radius:12px;font-size:14px}
+.dec.ok{background:#e9f7ee;color:#14532d}.dec.no{background:#fdecec;color:#7f1d1d}.dec.fl{background:#eef2ff;color:#1e3a8a}
+.kb-tools{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.kb-tools input{flex:1;min-width:180px;height:42px;border-radius:12px;border:1px solid var(--line);padding:0 14px;background:var(--bg)}
+.btn{height:42px;padding:0 16px;border-radius:12px;border:0;background:var(--ink);color:#fff;font-weight:600;font-size:14px}
+.btn.sun{background:var(--sun);color:var(--ink)}
+.kb{display:grid;gap:8px;max-height:430px;overflow:auto}
+.kb details{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--bg)}
+.kb summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.kb summary span{font:400 11px 'Martian Mono';color:var(--mute)}
+.kb p{margin-top:8px;color:#52525b;font-size:14px;white-space:pre-line}
+.add{display:none;gap:10px;border:1.5px dashed var(--ink);border-radius:16px;padding:16px;margin-bottom:14px}
+.add.on{display:grid}
+.add input,.add textarea{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;width:100%}
+.add textarea{min-height:90px;resize:vertical}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stats div{background:var(--bg);border-radius:16px;padding:14px}
+.stats b{display:block;font-size:28px;letter-spacing:-.04em;font-weight:700}
+.stats span{font-size:13px;color:var(--mute)}
+.list li{padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between;gap:10px}
+.list{list-style:none;padding:0}
+pre{background:var(--ink);color:#e4e4e7;border-radius:14px;padding:16px;overflow:auto;font:400 12px/1.7 'Martian Mono'}
+pre .k{color:var(--sun)}pre .s{color:#86efac}pre .c{color:#71717a}
+.arch{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0}
+.arch div{background:var(--bg);border-radius:14px;padding:14px;font-size:13.5px;position:relative}
+.arch b{display:block;margin-bottom:4px}
+.arch div:not(:last-child)::after{content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);font-weight:700;z-index:1}
+
+/* chat */
+.chat{background:var(--card);border-radius:28px;box-shadow:0 40px 80px -40px rgba(24,24,27,.4),0 0 0 1px var(--line);height:calc(100vh - 100px);min-height:600px;max-height:860px;display:flex;flex-direction:column;overflow:hidden;position:sticky;top:20px}
+.ch{background:var(--ink);color:#fff;padding:18px 20px;display:flex;align-items:center;gap:12px}
+.ava{width:42px;height:42px;border-radius:14px;background:var(--sun);display:grid;place-items:center;flex:none;position:relative}
+.ava::after{content:"";position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--ink)}
+.ava svg{width:24px;height:24px}
+.ch b{display:block;font-size:16px}.ch small{color:#a1a1aa;font-size:12.5px}
+.ch button{margin-left:auto;background:#ffffff14;border:0;color:#fff;width:36px;height:36px;border-radius:12px}
+.msgs{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.m{max-width:85%;padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.45;animation:in .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.m.bot{background:#f4f4f0;border-bottom-left-radius:6px;align-self:flex-start}
+.m.me{background:var(--ink);color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
+.m ul{margin:6px 0 0 18px;padding:0}.m li{margin:2px 0}
+.m b{font-weight:600}
+.src{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.src span{font-size:11.5px;background:#fff;border:1px solid var(--line);padding:3px 8px;border-radius:100px;color:var(--mute)}
+.fb{display:flex;gap:6px;margin-top:8px}
+.fb button{border:1px solid var(--line);background:#fff;border-radius:8px;width:30px;height:26px;font-size:12px;color:var(--mute)}
+.fb button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sugg{display:flex;gap:6px;flex-wrap:wrap;align-self:flex-start;max-width:92%;animation:in .3s}
+.sugg button{border:1.5px solid var(--ink);background:#fff;border-radius:100px;padding:7px 13px;font-size:13.5px;font-weight:500;transition:.15s}
+.sugg button:hover{background:var(--ink);color:#fff}
+.typing{display:flex;gap:4px;padding:14px 16px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#a1a1aa;animation:bl 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+.ticket{background:var(--sun2);border:1.5px dashed #d4a514;border-radius:14px;padding:12px;margin-top:8px;font-size:13.5px}
+.ticket code{font:500 13px 'Martian Mono';background:#fff;padding:2px 7px;border-radius:6px}
+form.in{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+form.in input{flex:1;height:48px;border-radius:16px;border:1px solid var(--line);background:var(--bg);padding:0 16px;font-size:15px}
+form.in input:focus{outline:2px solid var(--ink);outline-offset:-1px}
+form.in button{width:48px;height:48px;border-radius:16px;border:0;background:var(--sun);display:grid;place-items:center}
+.foot{text-align:center;font-size:11.5px;color:var(--mute);padding:0 0 10px}
+@media (max-width:1000px){.layout{grid-template-columns:1fr;padding:0 14px 20px}.chat{position:static;height:640px;order:-1}.stats{grid-template-columns:1fr 1fr}.arch{grid-template-columns:1fr 1fr}header{padding:14px}.res{grid-template-columns:1fr 80px 44px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><i></i>Lumo Fibre</div><div class="badge"><b>Démo</b>Assistant client · 100 % dans le navigateur</div></header>
+<div class="layout">
+  <div>
+    <div class="intro">
+      <h1>Un assistant qui <span>répond vraiment</span>, et qui sait quand passer la main.</h1>
+      <p>Il cherche dans la base de connaissances de l'entreprise, guide un diagnostic de panne étape par étape, suit une intervention, vérifie l'éligibilité d'un quartier et ouvre un ticket pour un conseiller quand il ne sait pas. Posez-lui une question, puis regardez ce qui se passe sous le capot.</p>
+    </div>
+    <div class="panel">
+      <div class="tabs" id="tabs"><button class="on" data-p="trace">Sous le capot</button><button data-p="kb">Base de connaissances</button><button data-p="stats">Statistiques</button><button data-p="int">Intégration</button></div>
+      <div class="pv on" id="p-trace"><div class="empty" id="trace">Envoyez un message à l'assistant : son raisonnement s'affichera ici.</div></div>
+      <div class="pv" id="p-kb">
+        <div class="kb-tools"><input id="kq" placeholder="Filtrer les fiches…" aria-label="Filtrer"><button class="btn sun" id="kadd">+ Nouvelle fiche</button></div>
+        <form class="add" id="kform"><input id="kt" placeholder="Titre de la fiche (ex. Option IP fixe)" required><input id="kqs" placeholder="Questions types, séparées par des points-virgules"><textarea id="kr" placeholder="Réponse que l'assistant doit donner" required></textarea><button class="btn">Ajouter et réindexer</button></form>
+        <div class="kb" id="kb"></div>
+      </div>
+      <div class="pv" id="p-stats"><div class="stats" id="st"></div><h5 style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-bottom:8px">Questions restées sans réponse</h5><ul class="list" id="miss"></ul></div>
+      <div class="pv" id="p-int">
+        <p style="color:#52525b">Le widget s'installe sur n'importe quel site (WordPress, Shopify, Wix, site sur mesure) avec une seule ligne :</p>
+        <pre style="margin-top:12px"><span class="c">&lt;!-- Juste avant &lt;/body&gt; --&gt;</span>
+&lt;<span class="k">script</span> src=<span class="s">"https://cdn.lumo.cm/assistant.js"</span>
+        data-cle=<span class="s">"pk_demo_8f2a…"</span> data-couleur=<span class="s">"#ffcf33"</span> defer&gt;&lt;/<span class="k">script</span>&gt;</pre>
+        <div class="arch"><div><b>1. Comprendre</b>Normalisation, synonymes, détection d'intention</div><div><b>2. Chercher</b>Classement BM25 des fiches de la base</div><div><b>3. Décider</b>Répondre, guider, ou passer la main</div><div><b>4. Rédiger</b>Réponse sourcée ; un LLM peut reformuler (RAG)</div></div>
+        <p style="color:#52525b;font-size:14.5px">Cette démo fonctionne sans aucune API : vos données restent chez vous. Pour une rédaction plus libre, l'étape 4 peut appeler un grand modèle de langage en lui transmettant uniquement les trois passages trouvés, ce qui limite les réponses inventées.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat" aria-label="Assistant Lumo">
+    <div class="ch"><div class="ava"><svg viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="11" r="1" fill="#18181b"/><circle cx="15" cy="11" r="1" fill="#18181b"/><path d="M8.5 15c2 1.6 5 1.6 7 0"/></svg></div><div><b>Lumi, assistante Lumo</b><small>Répond en quelques secondes · 24 h/24</small></div><button id="reset" title="Nouvelle conversation" aria-label="Nouvelle conversation">↺</button></div>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <form class="in" id="form"><input id="q" placeholder="Écrivez votre question…" autocomplete="off" aria-label="Votre message"><button aria-label="Envoyer"><svg width="20" height="20" fill="none" stroke="#18181b" stroke-width="2.2" stroke-linecap="round"><path d="M3 10h13M11 4l6 6-6 6"/></svg></button></form>
+    <div class="foot">Démonstration : aucune donnée n'est envoyée à un serveur.</div>
+  </div>
+</div>
+
+<script src="moteur.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+// ——— Base de connaissances ———
+let KB=[
+ {id:'offres',titre:'Les offres Lumo Fibre',questions:['quelles sont vos offres','combien coute la fibre','prix abonnement','quel forfait choisir'],reponse:'Trois offres, sans engagement :\n• **Lumo 50** : 50 Mb/s, 15 000 F par mois\n• **Lumo 200** : 200 Mb/s, 25 000 F par mois (la plus choisie)\n• **Lumo 1000** : 1 Gb/s, 45 000 F par mois, idéal pour le télétravail et les familles nombreuses\nLa box Wi-Fi 6 est incluse dans toutes les offres.'},
+ {id:'install',titre:'Délai et frais d\'installation',questions:['combien de temps pour installer','quand le technicien passe','frais d installation','raccordement'],reponse:'Après validation de votre commande, un technicien vous appelle sous 48 h pour fixer un rendez-vous. L\'installation dure environ 2 heures. Les frais de raccordement sont de **20 000 F**, offerts pour tout abonnement de 12 mois.'},
+ {id:'momo',titre:'Payer par Mobile Money',questions:['payer avec orange money','paiement mtn momo','comment payer ma facture','moyens de paiement'],reponse:'Vous pouvez régler par **Orange Money**, **MTN MoMo**, carte bancaire ou en agence. Depuis votre téléphone : composez le code marchand **#150*47*2026#** ou payez dans l\'application Lumo, rubrique Factures. Le paiement est pris en compte en moins de 5 minutes.'},
+ {id:'facture',titre:'Trouver et comprendre sa facture',questions:['ou trouver ma facture','telecharger facture','montant de la facture','facture trop elevee'],reponse:'Vos factures sont disponibles dans votre espace client, rubrique **Factures**, au format PDF, dès le 1er du mois. Le premier mois est calculé au prorata de la date d\'installation, ce qui explique un montant parfois différent.'},
+ {id:'retard',titre:'Retard de paiement et suspension',questions:['j ai oublie de payer','ligne suspendue','retard de paiement','coupure pour impaye'],reponse:'En cas de retard, vous recevez un rappel par SMS à J+3. La connexion est réduite à 1 Mb/s à J+10, puis suspendue à J+20. Elle est rétablie automatiquement dans les 10 minutes qui suivent votre paiement, sans frais.'},
+ {id:'wifi-mdp',titre:'Changer le nom ou le mot de passe Wi-Fi',questions:['changer mot de passe wifi','modifier le nom du wifi','code wifi oublie'],reponse:'Le mot de passe d\'origine est inscrit sous la box. Pour le changer : ouvrez **192.168.1.1** dans votre navigateur, connectez-vous avec l\'identifiant « admin » et le code imprimé sous la box, puis rubrique **Wi-Fi > Sécurité**. Pensez à reconnecter vos appareils ensuite.'},
+ {id:'wifi-lent',titre:'Wi-Fi lent : les bons réflexes',questions:['mon internet est lent','connexion lente','le wifi rame','debit faible'],reponse:'Quelques gestes règlent la plupart des lenteurs :\n• Placez la box en hauteur, au centre du logement, loin du micro-ondes\n• Utilisez le réseau **5 GHz** près de la box, le 2,4 GHz à travers les murs\n• Redémarrez la box une fois par mois\n• Pour un test fiable, branchez un ordinateur en câble Ethernet\nSi le débit reste anormal en câble, je peux lancer un diagnostic.'},
+ {id:'demenagement',titre:'Déménagement',questions:['je demenage','transferer mon abonnement','changer d adresse'],reponse:'Votre abonnement vous suit gratuitement si la nouvelle adresse est éligible. Prévenez-nous **10 jours avant** depuis l\'espace client ou ici : nous planifions le débranchement et le raccordement le même jour, pour ne pas rester sans internet.'},
+ {id:'resiliation',titre:'Résilier son abonnement',questions:['resilier mon abonnement','arreter lumo','mettre fin au contrat'],reponse:'Les offres sont sans engagement : la résiliation se fait depuis l\'espace client ou en agence, avec un préavis de 10 jours. La box est à rapporter en agence ou à remettre au technicien sous 30 jours. Aucuns frais ne sont facturés.'},
+ {id:'voyants',titre:'Les voyants de la box',questions:['que signifie le voyant rouge','voyant pon clignote','voyant los rouge'],reponse:'• **Power** vert : la box est allumée\n• **PON** vert fixe : la fibre est synchronisée ; clignotant : synchronisation en cours\n• **LOS** rouge : aucun signal sur la fibre, souvent un câble plié ou débranché\n• **Internet** vert : vous êtes en ligne'},
+ {id:'horaires',titre:'Joindre le service client',questions:['numero du service client','horaires du service client','appeler lumo','agences'],reponse:'Le service client répond au **8050** (gratuit depuis un mobile), du lundi au samedi de 7 h à 21 h. Agences : Akwa et Bonamoussadi à Douala, Bastos et Mvan à Yaoundé, de 8 h à 18 h.'},
+ {id:'parrainage',titre:'Parrainage',questions:['parrainer un ami','code parrainage','avantage parrain'],reponse:'Parrainez un proche : il bénéficie des frais d\'installation offerts, et vous recevez **un mois gratuit** dès sa première facture payée. Votre code de parrainage est dans l\'espace client.'},
+ {id:'tv',titre:'Option TV',questions:['avez vous la television','option tv','chaines'],reponse:'L\'option **Lumo TV** ajoute 120 chaînes dont 40 en HD, et le replay 7 jours, pour 6 000 F par mois. Le décodeur se branche sur la box et s\'installe en 5 minutes.'},
+ {id:'pro',titre:'Offres professionnelles',questions:['offre entreprise','ip fixe','fibre pour mon bureau','debit garanti'],reponse:'Les offres **Lumo Pro** incluent une adresse IP fixe, un débit garanti, une intervention en 4 h ouvrées et une ligne de secours 4G. Un conseiller entreprises vous rappelle sous 24 h pour un devis.'},
+ {id:'coupures',titre:'Travaux et coupures programmées',questions:['coupure programmee','maintenance reseau','travaux dans mon quartier'],reponse:'Les maintenances ont lieu entre 1 h et 5 h du matin et sont annoncées 48 h à l\'avance par SMS. La carte des travaux en cours est consultable dans l\'application Lumo.'},
+ {id:'parental',titre:'Contrôle parental',questions:['controle parental','bloquer des sites','limiter internet des enfants'],reponse:'Depuis l\'application Lumo, rubrique **Famille**, vous pouvez définir des plages horaires par appareil, bloquer des catégories de sites et mettre le Wi-Fi en pause d\'un geste. C\'est inclus dans toutes les offres.'}
+];
+const QUARTIERS={douala:['akwa','bonapriso','bonanjo','bali','deido','makepe','bonamoussadi','kotto','logpom','denver'],yaounde:['bastos','golf','mvan','odza','essos','biyem-assi','omnisport','santa barbara','nlongkak','etoa-meki']};
+const BIENTOT=['pk14','logbaba','nkolbisson','mendong','bonaberi'];
+let idx=new Index(KB);
+const stats={q:0,ok:0,esc:0,flows:0,topics:{},miss:[]};
+
+// ——— Conversation ———
+const msgs=$('#msgs');let flow=null,history=[];
+const md=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|\n)• (.+)/g,'$1<li>$2</li>').replace(/(<li>.*<\/li>)/s,'<ul>$1</ul>').replace(/\n(?!<)/g,'<br>').replace(/<\/li><br>/g,'</li>');
+function add(who,html,extra=''){const d=document.createElement('div');d.className='m '+who;d.innerHTML=html+extra;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;history.push((who==='me'?'Client : ':'Lumi : ')+d.textContent.slice(0,140));return d}
+function sugg(list){const d=document.createElement('div');d.className='sugg';d.innerHTML=list.map(s=>`<button>${s}</button>`).join('');d.onclick=e=>{const b=e.target.closest('button');if(!b)return;d.remove();send(b.textContent)};msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight}
+function bot(text,{src=[],fb=false,s=[],html=''}={}){
+  const t=document.createElement('div');t.className='m bot typing';t.innerHTML='<i></i><i></i><i></i>';msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+  return new Promise(r=>setTimeout(()=>{t.remove();add('bot',md(text)+html,(src.length?`<div class="src">${src.map(x=>`<span>Source : ${x}</span>`).join('')}</div>`:'')+(fb?'<div class="fb"><button aria-label="Utile">▲</button><button aria-label="Pas utile">▼</button></div>':''));if(s.length)sugg(s);r()},Math.min(1400,380+text.length*5)))}
+msgs.addEventListener('click',e=>{const b=e.target.closest('.fb button');if(!b)return;[...b.parentNode.children].forEach(x=>x.classList.toggle('on',x===b));if(b.textContent==='▼'){bot('Merci pour votre retour. Voulez-vous que je transmette votre question à un conseiller ?',{s:['Oui, un conseiller','Non merci']})}});
+
+const ticket=()=>'LMO-'+(48000+Math.floor(Math.random()*9000));
+function trace(o){
+  $('#trace').className='trace';
+  $('#trace').innerHTML=`<div><h5>Intention détectée</h5><span class="int">${o.intent}</span>${o.flow?` <span class="mono" style="color:var(--mute);margin-left:8px">parcours : ${o.flow}</span>`:''}</div>
+  ${o.jetons?`<div><h5>Jetons normalisés (accents, mots vides, racines, synonymes)</h5><div class="chips">${o.jetons.map(t=>`<span class="tok">${t}</span>`).join('')||'<span class="mono">—</span>'}</div></div>`:''}
+  ${o.res?`<div><h5>Fiches les plus pertinentes (score BM25)</h5>${o.res.length?o.res.map((r,i)=>`<div class="res ${i?'':'top'}"><span>${r.doc.titre}</span><div class="bar"><i style="width:${Math.min(100,r.score/o.res[0].score*100)}%"></i></div><span class="mono">${r.score.toFixed(2)}</span></div>`).join(''):'<p class="mono" style="color:var(--mute)">Aucune fiche ne correspond.</p>'}</div>`:''}
+  <div><h5>Décision</h5><div class="dec ${o.cls}">${o.dec}</div></div>`;
+}
+async function send(q){
+  q=q.trim();if(!q)return;add('me',q.replace(/</g,'&lt;'));stats.q++;
+  $$('.sugg').forEach(s=>s.remove());
+  if(flow)return flow(q);
+  const intent=detecterIntention(q);
+  if(intent==='salut'){trace({intent,dec:'Salutation : réponse d\'accueil et suggestions.',cls:'fl'});stats.ok++;return bot('Bonjour ! Je suis Lumi. Je peux vous aider pour une panne, une facture, un déménagement ou une nouvelle offre. Que puis-je faire pour vous ?',{s:['Je n\'ai plus internet','Quelles sont vos offres ?','Payer par Orange Money']})}
+  if(intent==='merci'){trace({intent,dec:'Remerciement : clôture polie.',cls:'fl'});stats.ok++;return bot('Avec plaisir ! Bonne journée, et n\'hésitez pas si vous avez une autre question.')}
+  if(intent==='humain')return escalade(q);
+  if(intent==='panne'){stats.flows++;trace({intent,flow:'diagnostic de panne',dec:'Parcours guidé : diagnostic en 3 questions avant d\'ouvrir un ticket.',cls:'fl'});return diag(0)}
+  if(intent==='eligibilite'){stats.flows++;return elig(q)}
+  if(intent==='suivi'){stats.flows++;return suivi(q)}
+  const {jetons,resultats}=idx.chercher(q);
+  const best=resultats[0],second=resultats[1];
+  if(best&&best.score>=1.6){stats.ok++;stats.topics[best.doc.titre]=(stats.topics[best.doc.titre]||0)+1;
+    trace({intent,jetons,res:resultats,dec:`Réponse issue de « ${best.doc.titre} » (score ${best.score.toFixed(2)} au-dessus du seuil 1,60).`,cls:'ok'});
+    const more=second&&second.score>best.score*.6?[second.doc.titre]:[];
+    return bot(best.doc.reponse,{src:[best.doc.titre],fb:true,s:more.length?['En savoir plus : '+more[0].toLowerCase()]:[]})}
+  stats.miss.unshift(q);
+  trace({intent,jetons,res:resultats,dec:best?`Score trop faible (${best.score.toFixed(2)} < 1,60) : l'assistant préfère ne pas inventer et propose des pistes.`:'Aucune correspondance : proposition de reformuler ou de parler à un conseiller.',cls:'no'});
+  return bot('Je ne suis pas certaine de bien comprendre, et je préfère ne pas vous répondre au hasard. Voulez-vous préciser, ou que je transmette à un conseiller ?',{s:(resultats.slice(0,2).map(r=>r.doc.titre)).concat(['Parler à un conseiller'])});
+}
+
+// Parcours : diagnostic de panne
+const DIAG=[
+ {q:'D\'accord, regardons ça ensemble. Sur votre box, quel est l\'état du voyant **PON** ?',o:['Vert fixe','Il clignote','Rouge (LOS) ou éteint']},
+];
+async function diag(){
+  flow=async a=>{
+    if(/vert/i.test(a)){flow=async b=>{flow=null;if(/oui/i.test(b)){stats.ok++;return bot('Parfait, la connexion est revenue après le redémarrage. C\'était sans doute une saturation de la box. Bonne navigation !',{fb:true})}return openTicket('La fibre est synchronisée mais internet ne répond pas, même après redémarrage.')};
+      return bot('La fibre arrive bien jusqu\'à chez vous. Débranchez la box **30 secondes**, rebranchez-la, puis attendez 3 minutes. Internet est-il revenu ?',{s:['Oui, ça marche','Non, toujours rien']})}
+    if(/clignot/i.test(a)){flow=null;stats.ok++;return bot('La box cherche le signal. Vérifiez que le petit câble fibre (souvent vert ou bleu) est bien enfoncé des deux côtés et qu\'il n\'est pas plié. Si le voyant clignote encore dans 10 minutes, écrivez « toujours en panne » et j\'ouvrirai une intervention.',{fb:true})}
+    if(/rouge|los|eteint/i.test(a.normalize('NFD').replace(/[̀-ͯ]/g,''))){flow=async b=>{flow=null;if(/oui/i.test(b)){return openTicket('Voyant LOS rouge malgré un câble correctement branché : coupure probable sur la ligne.')}stats.ok++;return bot('Rebranchez-le délicatement sans le plier : le voyant devrait passer au vert en moins de 2 minutes. Sinon, je reste là.',{fb:true})};
+      return bot('Le voyant rouge signale l\'absence de signal sur la fibre. Le câble fibre est-il bien branché, sans pli ni écrasement ?',{s:['Oui, il est bien branché','Non, il était débranché']})}
+    flow=null;return send(a);
+  };
+  return bot(DIAG[0].q,{s:DIAG[0].o});
+}
+async function openTicket(resume){
+  const t=ticket();stats.esc++;
+  trace({intent:'panne',flow:'diagnostic de panne',dec:`Diagnostic épuisé : ticket ${t} ouvert avec le résumé de la conversation.`,cls:'fl'});
+  return bot('Je ne peux pas le régler à distance : j\'ai ouvert une intervention. Un technicien vous appellera dans les **4 heures**.',{html:`<div class="ticket">Ticket <code>${t}</code><br>${resume}</div>`,s:['Suivre mon intervention']})
+}
+// Parcours : éligibilité
+async function elig(q){
+  const n=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const find=()=>{for(const [v,l] of Object.entries(QUARTIERS)){const k=l.find(x=>n.includes(x)||x.includes(n.trim()));if(k)return[v,k]}return null};
+  const f=find(),soon=BIENTOT.find(x=>n.includes(x));
+  if(f){flow=null;stats.ok++;const ville=f[0]==='douala'?'Douala':'Yaoundé';trace({intent:'eligibilite',flow:'test d\'éligibilité',dec:`Quartier reconnu : ${f[1]} (${ville}) → éligible.`,cls:'ok'});return bot(`Bonne nouvelle : **${f[1].replace(/\b\w/g,c=>c.toUpperCase())}**, à ${ville}, est éligible à la fibre Lumo, jusqu'à 1 Gb/s. Je vous présente les offres ?`,{s:['Quelles sont vos offres ?','Délai d\'installation']})}
+  if(soon){flow=null;trace({intent:'eligibilite',flow:'test d\'éligibilité',dec:`Quartier en cours de déploiement : ${soon}.`,cls:'fl'});return bot(`Le déploiement à **${soon.replace(/\b\w/g,c=>c.toUpperCase())}** est prévu pour le premier trimestre 2027. Voulez-vous être prévenu dès l'ouverture ?`,{s:['Oui, prévenez-moi','Non merci']})}
+  if(flow){flow=null;trace({intent:'eligibilite',flow:'test d\'éligibilité',dec:'Quartier inconnu : proposition d\'étude par un conseiller.',cls:'no'});return bot('Je ne trouve pas ce quartier dans notre carte de couverture. Un conseiller peut faire une étude précise à votre adresse.',{s:['Parler à un conseiller']})}
+  trace({intent:'eligibilite',flow:'test d\'éligibilité',dec:'Quartier manquant : l\'assistant le demande.',cls:'fl'});
+  flow=a=>elig(a);return bot('Avec plaisir. Dans quel quartier habitez-vous ? (par exemple Bastos, Akwa, Makepe…)');
+}
+// Parcours : suivi d'intervention
+async function suivi(q){
+  const m=q.toUpperCase().match(/LMO-?(\d{4,6})/);
+  if(!m){flow=a=>suivi(a);trace({intent:'suivi',flow:'suivi d\'intervention',dec:'Numéro de ticket manquant : demande au client.',cls:'fl'});return bot('Quel est votre numéro de ticket ? Il commence par LMO, par exemple LMO-48213.')}
+  flow=null;stats.ok++;const n=+m[1],ST=[['planifiée','Un technicien passera demain entre 8 h et 12 h.'],['en cours','Le technicien est en route, arrivée estimée dans 40 minutes.'],['terminée','La ligne a été réparée hier à 16 h 20. Tout fonctionne de votre côté ?']][n%3];
+  trace({intent:'suivi',flow:'suivi d\'intervention',dec:`Ticket LMO-${m[1]} trouvé : statut « ${ST[0]} ».`,cls:'ok'});
+  return bot(`Intervention **LMO-${m[1]}** : ${ST[0]}. ${ST[1]}`,{fb:true});
+}
+async function escalade(q){
+  const t=ticket();stats.esc++;flow=null;
+  trace({intent:'humain',dec:`Escalade : ticket ${t} transmis avec l'historique (${history.length} messages).`,cls:'fl'});
+  return bot('Je transmets votre demande à un conseiller, avec tout l\'historique de notre échange : vous n\'aurez rien à répéter. Temps d\'attente estimé : **6 minutes**.',{html:`<div class="ticket">Ticket <code>${t}</code><br>${history.length} messages joints</div>`});
+}
+
+$('#form').onsubmit=e=>{e.preventDefault();const v=$('#q').value;$('#q').value='';send(v);};
+function hello(){msgs.innerHTML='';history=[];flow=null;bot('Bonjour, je suis **Lumi**, l\'assistante de Lumo Fibre. Comment puis-je vous aider ?',{s:['Je n\'ai plus internet','Suis-je éligible à Bastos ?','Payer par Orange Money','Changer mon mot de passe Wi-Fi']})}
+$('#reset').onclick=hello;
+
+// ——— Panneaux ———
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('.pv').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.p));if(b.dataset.p==='stats')drawStats();if(b.dataset.p==='kb')drawKB()};
+function drawKB(){const f=$('#kq').value.toLowerCase();$('#kb').innerHTML=KB.filter(d=>(d.titre+d.reponse).toLowerCase().includes(f)).map(d=>`<details><summary>${d.titre}<span>${(d.questions||[]).length} questions types</span></summary><p>${d.reponse.replace(/\*\*/g,'')}</p></details>`).join('')}
+$('#kq').oninput=drawKB;$('#kadd').onclick=()=>$('#kform').classList.toggle('on');
+$('#kform').onsubmit=e=>{e.preventDefault();KB.unshift({id:'u'+Date.now(),titre:$('#kt').value.trim(),questions:$('#kqs').value.split(';').map(s=>s.trim()).filter(Boolean),reponse:$('#kr').value.trim()});idx=new Index(KB);e.target.reset();e.target.classList.remove('on');drawKB();add('bot',`<i>Nouvelle fiche apprise : « ${KB[0].titre} ». Posez-moi la question !</i>`)};
+function drawStats(){const top=Object.entries(stats.topics).sort((a,b)=>b[1]-a[1]);
+  $('#st').innerHTML=`<div><b>${stats.q}</b><span>messages reçus</span></div><div><b>${(stats.ok+stats.esc+stats.miss.length)?Math.round(stats.ok/(stats.ok+stats.esc+stats.miss.length)*100):0} %</b><span>demandes résolues seul</span></div><div><b>${stats.flows}</b><span>parcours guidés</span></div><div><b>${stats.esc}</b><span>passés à un conseiller</span></div>`;
+  $('#miss').innerHTML=stats.miss.length?stats.miss.slice(0,8).map(m=>`<li><span>${m.replace(/</g,'&lt;')}</span><button class="btn sun" style="height:30px;font-size:12px" onclick="document.querySelector('#tabs [data-p=kb]').click();document.querySelector('#kform').classList.add('on');document.querySelector('#kqs').value=this.parentNode.firstChild.textContent">Créer une fiche</button></li>`).join(''):'<li style="color:var(--mute)">Aucune pour l\'instant. Essayez une question hors sujet.</li>'}
+hello();
+</script>
+</body>
+</html>
